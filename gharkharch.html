@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GharKharch – Family Budget</title>
+<style>
+:root{--bg:#f6f8f7;--card:#fff;--text:#1e293b;--muted:#64748b;--line:#e2e8f0;--accent:#047857;--accent-t:#fff;--soft:#ecfdf5;--need:#2563eb;--want:#d97706;--sav:#059669;--inc:#047857;--red:#dc2626;--input:#f8fafc;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1715;--card:#18221f;--text:#e5ece9;--muted:#93a39d;--line:#2a3733;--accent:#34d399;--accent-t:#06281d;--soft:#12342a;--need:#60a5fa;--want:#fbbf24;--sav:#34d399;--inc:#34d399;--red:#f87171;--input:#101a17;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1715;--card:#18221f;--text:#e5ece9;--muted:#93a39d;--line:#2a3733;--accent:#34d399;--accent-t:#06281d;--soft:#12342a;--need:#60a5fa;--want:#fbbf24;--sav:#34d399;--inc:#34d399;--red:#f87171;--input:#101a17;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:12px}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:20px;margin:0}h1 small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+h3{margin:0 0 8px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.kpi{margin:0}.kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.kpi .v{font-size:21px;font-weight:700;margin-top:2px}.kpi .s{font-size:12px;color:var(--muted)}
+.two{grid-template-columns:1fr}@media(min-width:760px){.two{grid-template-columns:3fr 2fr}}
+input,select,button{font:inherit;color:var(--text)}
+input,select{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-width:0}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+.row{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:8px}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px}
+button.p{background:var(--accent);color:var(--accent-t);border-color:var(--accent);font-weight:600}
+button.sm{padding:3px 8px;font-size:12px}
+.seg{display:flex;gap:6px;margin-bottom:10px}.seg button{flex:1}.seg button.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.chips button{background:var(--soft);font-size:13px}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:3px 0 4px}.bar i{display:block;height:100%;border-radius:6px}
+.fl{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:560px}
+th{font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px}
+td{padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}
+.r{text-align:right}.m{color:var(--muted);font-size:12px}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:8px;background:var(--soft)}
+.hide{display:none!important}
+.cat{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:14px;max-width:420px;width:92%}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+pre{white-space:pre-wrap;background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;max-height:240px;overflow:auto}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 14px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🏡 GharKharch<small>Needs · Wants · Savings · <span id="sync">⚪ this device only</span></small></h1>
+  <div style="display:flex;gap:6px;align-items:center"><select id="who" style="width:auto"></select><button onclick="$('memD').showModal()">👥</button></div>
+</header>
+<div id="banner" class="card hide"></div>
+
+<div class="card" style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+  <button onclick="shiftMonth(-1)">◀</button>
+  <input type="month" id="month" style="width:auto;text-align:center;font-weight:600" onchange="render()">
+  <button onclick="shiftMonth(1)">▶</button>
+</div>
+
+<div class="grid kpis" style="margin-bottom:12px">
+  <div class="card kpi"><div class="l">Income · आमदनी</div><div class="v" id="kInc" style="color:var(--inc)"></div><div class="s">This month</div></div>
+  <div class="card kpi"><div class="l">Needs · ज़रूरी खर्चा</div><div class="v" id="kNeed"></div><div class="s" id="sNeed"></div></div>
+  <div class="card kpi"><div class="l">Wants · शौकिया खर्चा</div><div class="v" id="kWant"></div><div class="s" id="sWant"></div></div>
+  <div class="card kpi"><div class="l">Savings · बचत</div><div class="v" id="kSav"></div><div class="s" id="sSav"></div></div>
+  <div class="card kpi"><div class="l">Unallocated</div><div class="v" id="kLeft"></div><div class="s">Income − all</div></div>
+</div>
+
+<div class="grid two">
+  <div class="card">
+    <div class="fl" style="margin-bottom:6px;align-items:center"><h3 id="formTitle" style="margin:0">Add entry</h3><button type="button" id="micBtn" onclick="toggleVoice()">🎤 Speak</button></div><div class="m" style="margin-bottom:8px">Say: “500 rupees groceries”, “2000 salary”, “paanch sau sabzi”</div>
+    <div class="seg" id="kindSeg">
+      <button type="button" data-k="expense" class="on" onclick="setKind('expense')">➖ Expense<br><small>खर्चा</small></button>
+      <button type="button" data-k="income" onclick="setKind('income')">➕ Income<br><small>आमदनी</small></button>
+      <button type="button" data-k="saving" onclick="setKind('saving')">🐖 Saving<br><small>बचत</small></button>
+    </div>
+    <div class="chips">
+      <button onclick="preset('expense','need','Groceries')">🥦 Groceries</button>
+      <button onclick="preset('expense','need','Electricity')">⚡ Electricity</button>
+      <button onclick="preset('expense','want','Eating out')">🍽 Eating out</button>
+      <button onclick="preset('expense','want','Shopping')">🛍 Shopping</button>
+      <button onclick="preset('saving','','SIP')">📈 SIP</button>
+      <button onclick="preset('income','','Salary')">💼 Salary</button>
+    </div>
+    <form id="f" onsubmit="submitForm(event)">
+      <div class="row">
+        <div id="bucketBox"><label>Is it a…</label><select id="fBucket" onchange="fillCats()"><option value="need">Need / ज़रूरी खर्चा</option><option value="want">Want / शौकिया खर्चा</option></select></div>
+        <div><label>Category (type your own)</label><input id="fCat" list="cats" required placeholder="e.g. Groceries"></div>
+      </div>
+      <datalist id="cats"></datalist>
+      <div class="row">
+        <div><label>Note (optional)</label><input id="fTitle" placeholder="e.g. Weekly vegetables"></div>
+        <div><label>Amount (₹)</label><input id="fAmt" type="number" min="1" step="any" required></div>
+        <div><label>Date</label><input id="fDate" type="date" required></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" id="cancelEdit" class="hide" onclick="resetForm()">Cancel edit</button>
+        <button class="p" id="saveBtn">Save entry</button>
+      </div>
+    </form>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="fl" style="margin-bottom:8px"><h3 style="margin:0">Budget vs target</h3><button class="sm" onclick="openTargets()">Set %</button></div>
+      <div id="env"></div>
+      <button style="width:100%" onclick="openDigest()">📲 WhatsApp summary</button>
+    </div>
+    <div class="card"><h3>Where money went</h3><div id="catList"></div></div>
+  </div>
+</div>
+
+<div class="card">
+ <div class="fl" style="margin-bottom:8px;align-items:center;flex-wrap:wrap"><h3 style="margin:0">🥛 Milk & 🥦 Subzi tally · दूध / सब्ज़ी हिसाब</h3><span class="m">Milk rate ₹/L <input id="rate" type="number" min="1" style="width:70px;padding:3px 6px" onchange="setRate()"></span></div>
+ <div id="cal" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+ <div id="tallySum" style="margin-top:8px"></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="sm" onclick="fillMilk()">🥛 Mark milk for all days till today</button><button class="sm" onclick="tallyToLedger()">➕ Add month totals to ledger</button></div>
+</div>
+<div class="card">
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+    <h3 style="margin:0;flex:1 1 100%">Ledger</h3>
+    <select id="fltType" onchange="render()" style="flex:1"><option value="all">Everything</option><option value="income">Income</option><option value="need">Needs</option><option value="want">Wants</option><option value="saving">Savings</option></select>
+    <select id="fltWho" onchange="render()" style="flex:1"></select>
+    <input id="fltQ" oninput="render()" placeholder="Search…" style="flex:2">
+  </div>
+  <div class="tw"><table><thead><tr><th>Date / by</th><th>Category</th><th>Type</th><th class="r">Amount</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div id="empty" class="m hide" style="padding:16px;text-align:center">No entries yet for this month.</div>
+  <div class="fl" style="margin-top:8px"><span id="cnt"></span><span id="tot"></span></div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="sm" onclick="$('bkD').showModal()">📥 Export / 📤 Import data</button><span class="m" id="note"></span></div>
+</div>
+
+<dialog id="memD"><h3>Family members</h3>
+  <div style="display:flex;gap:6px;margin-bottom:8px"><input id="newM" placeholder="e.g. Papa"><button class="p" onclick="addMember()">Add</button></div>
+  <div id="memL"></div><div style="text-align:right;margin-top:8px"><button onclick="$('memD').close()">Close</button></div></dialog>
+<dialog id="tgtD"><h3>Target split (% of income)</h3>
+  <label>Needs %</label><input id="tN" type="number"><label>Wants %</label><input id="tW" type="number"><label>Savings %</label><input id="tS" type="number">
+  <div class="m" id="tSum" style="margin-top:6px">Common starting point: 50 / 30 / 20</div>
+  <div style="text-align:right;margin-top:10px"><button onclick="$('tgtD').close()">Cancel</button> <button class="p" onclick="saveTargets()">Save</button></div></dialog>
+<dialog id="digD"><h3>WhatsApp summary</h3><pre id="digT"></pre>
+  <div style="display:flex;gap:8px;margin-top:10px"><button style="flex:1" onclick="copyDigest()">Copy</button><a id="waLink" target="_blank" rel="noopener" style="flex:1;text-decoration:none"><button class="p" style="width:100%">Send</button></a><button onclick="$('digD').close()">✕</button></div></dialog>
+<dialog id="dayD"><h3 id="dayT"></h3><label>🥛 Milk received (litres, 0 = none)</label><input id="dM" type="number" step="0.5" min="0"><label style="margin-top:8px">🥦 Subzi cash spent (₹)</label><input id="dS" type="number" min="0">
+<div style="text-align:right;margin-top:10px"><button onclick="$('dayD').close()">Cancel</button> <button class="p" onclick="saveDay()">Save</button></div></dialog>
+<dialog id="bkD"><h3>Backup / Restore</h3><button style="width:100%;margin-bottom:8px" onclick="exportData()">📥 Export data (JSON)</button><label>Import: choose a backup file, or paste the JSON below</label><input type="file" id="bkFile" accept=".json,application/json" onchange="fileImport(this)"><textarea id="bkTxt" rows="5" style="width:100%;margin-top:8px;background:var(--input);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px"></textarea>
+<div style="text-align:right;margin-top:8px"><button onclick="$('bkD').close()">Close</button> <button class="p" onclick="importData($('bkTxt').value)">📤 Import</button></div></dialog>
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KEY='gharkharch_v3';
+const pad=n=>String(n).padStart(2,'0');
+const dstr=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>dstr(new Date());
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rs=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n);
+const sum=a=>a.reduce((s,t)=>s+t.amount,0);
+const CATS={need:['Groceries','Rent / EMI','Electricity','Milk','School fees','Medical','Fuel / Transport','Mobile / Internet','Household help'],want:['Eating out','Shopping','Movies','Travel','Gifts / Shagun','Subscriptions','Hobbies'],saving:['SIP','FD / RD','Chit fund','Gold','Emergency fund','PPF'],income:['Salary','Business','Rent received','Other income']};
+const BK={need:{n:'Needs',h:'ज़रूरी',c:'var(--need)'},want:{n:'Wants',h:'शौकिया',c:'var(--want)'},saving:{n:'Savings',h:'बचत',c:'var(--sav)'}};
+function seed(){return{members:['Kshitij','Spouse','Parents'],active:'Kshitij',targets:{need:50,want:30,save:20},tx:[],tally:{},rate:60}}
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S||!S.tx)S=seed();
+if(!S.tally)S.tally={};if(!S.rate)S.rate=60;
+let DB=null,readOnly=false,kind='expense',editId=null,toastT;
+try{S.active=localStorage.getItem('gk_active')||S.active}catch(e){}
+function setActive(n){S.active=n;try{localStorage.setItem('gk_active',n)}catch(e){}}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2500)}
+function save(o){if(!DB){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}render();if(DB&&o)push(o)}
+async function push(o){
+  try{
+    if(o.cfg)await DB.doc('config/budget').set({members:S.members,targets:S.targets,rate:S.rate});
+    for(const mo of o.tally||[])await DB.doc('tally/'+mo).set({days:S.tally[mo]||{}});
+    for(const id of o.tx||[]){const t=S.tx.find(x=>x.id===id);if(t)await DB.doc('entries/'+id).set(JSON.parse(JSON.stringify(t)))}
+    for(const id of o.del||[])await DB.doc('entries/'+id).delete();
+  }catch(e){toast('Could not save. You may have view-only access.');
+    try{const sn=await DB.collection('entries').get();S.tx=sn.docs.map(d=>({...d.data()}));render()}catch(e2){}}
+}
+function setStatus(){$('sync').textContent=DB?'🟢 live with family':'⚪ this device only';$('note').textContent=DB?'Shared live with everyone who has edit access to this page.':'Saved on this device only.'}
+function banner(h){const b=$('banner');b.innerHTML=h;b.classList.toggle('hide',!h)}
+
+function monthData(){const mo=$('month').value;const m=S.tx.filter(t=>t.date.slice(0,7)===mo);
+  return{m,inc:sum(m.filter(t=>t.kind==='income')),need:sum(m.filter(t=>t.kind==='expense'&&t.bucket==='need')),want:sum(m.filter(t=>t.kind==='expense'&&t.bucket==='want')),sav:sum(m.filter(t=>t.kind==='saving'))}}
+const tp=t=>t.kind==='income'?'income':t.kind==='saving'?'saving':t.bucket;
+
+function render(){
+  if(!$('month').value)$('month').value=today().slice(0,7);
+  if(!S.members.includes(S.active))S.active=S.members[0];
+  $('who').innerHTML=S.members.map(m=>`<option ${m===S.active?'selected':''}>${esc(m)}</option>`).join('');
+  const fw=$('fltWho').value||'all';
+  $('fltWho').innerHTML='<option value="all">All members</option>'+S.members.map(m=>`<option ${m===fw?'selected':''}>${esc(m)}</option>`).join('');
+  $('memL').innerHTML=S.members.map(m=>`<div class="cat"><span>${esc(m)}${m===S.active?' <span class="tag">you</span>':''}</span>${S.members.length>1?`<button class="sm" onclick="removeMember(${JSON.stringify(m).replace(/"/g,'&quot;')})">Remove</button>`:''}</div>`).join('');
+  const d=monthData(),T=S.targets,pc=v=>d.inc?Math.round(v/d.inc*100)+'% of income':'';
+  $('kInc').textContent=rs(d.inc);
+  $('kNeed').textContent=rs(d.need);$('sNeed').textContent=pc(d.need);
+  $('kWant').textContent=rs(d.want);$('sWant').textContent=pc(d.want);
+  $('kSav').textContent=rs(d.sav);$('sSav').textContent=pc(d.sav);
+  const left=d.inc-d.need-d.want-d.sav;$('kLeft').textContent=rs(left);$('kLeft').style.color=left<0?'var(--red)':'var(--accent)';
+  $('env').innerHTML=d.inc?[['need',d.need,T.need],['want',d.want,T.want],['saving',d.sav,T.save]].map(([k,a,p])=>{
+    const tgt=d.inc*p/100,pr=tgt?a/tgt*100:0,over=k!=='saving'&&a>tgt,ok=k==='saving'&&a>=tgt;
+    return`<div class="fl"><b>${BK[k].n} · ${BK[k].h} · target ${p}%</b><span style="${over?'color:var(--red);font-weight:600':ok?'color:var(--sav);font-weight:600':''}">${rs(a)} / ${rs(tgt)}</span></div><div class="bar"><i style="width:${Math.min(100,pr)}%;background:${over?'var(--red)':BK[k].c}"></i></div><div class="m" style="margin-bottom:8px">${over?'Over by '+rs(a-tgt):ok?'Target met 🎉':rs(Math.max(0,tgt-a))+(k==='saving'?' still to save':' left to spend')}</div>`}).join(''):'<div class="m" style="margin-bottom:10px">Add this month’s income to see your Needs / Wants / Savings targets.</div>';
+  const g={};d.m.filter(t=>t.kind!=='income').forEach(t=>{const k=tp(t)+'|'+t.cat;g[k]=(g[k]||0)+t.amount});
+  const cl=Object.entries(g).sort((a,b)=>b[1]-a[1]);
+  $('catList').innerHTML=cl.length?cl.map(([k,v])=>{const[b,c]=k.split('|');return`<div class="cat"><span>${esc(c)} <span class="tag" style="color:${BK[b].c}">${BK[b].n.replace(/s$/,'')}</span></span><b>${rs(v)}</b></div>`}).join(''):'<div class="m">Nothing logged yet.</div>';
+  const ft=$('fltType').value,fq=$('fltQ').value.toLowerCase().trim();
+  const rows=d.m.filter(t=>(ft==='all'||tp(t)===ft)&&(fw==='all'||t.member===fw)&&(!fq||(t.cat+' '+t.title).toLowerCase().includes(fq))).sort((a,b)=>b.date.localeCompare(a.date));
+  $('rows').innerHTML=rows.map(t=>{const x=tp(t),lab=x==='income'?'Income':BK[x].n.replace(/s$/,''),col=x==='income'?'var(--inc)':BK[x].c;
+   return`<tr><td>${t.date}<div class="m">${esc(t.member)}</div></td><td><b>${esc(t.cat)}</b>${t.title&&t.title!==t.cat?`<div class="m">${esc(t.title)}</div>`:''}</td><td><span class="tag" style="color:${col}">${lab}</span></td><td class="r"><b style="color:${t.kind==='income'?'var(--inc)':'inherit'}">${t.kind==='income'?'+':''}${rs(t.amount)}</b></td><td style="white-space:nowrap"><button class="sm" onclick="startEdit('${t.id}')">✏️</button> <button class="sm" onclick="del('${t.id}')">🗑</button></td></tr>`}).join('');
+  $('empty').classList.toggle('hide',rows.length>0);
+  $('cnt').textContent=`Showing ${rows.length} of ${d.m.length} entries`;renderTally();
+}
+function shiftMonth(n){const[y,m]=$('month').value.split('-').map(Number);const d=new Date(y,m-1+n,1);$('month').value=d.getFullYear()+'-'+pad(d.getMonth()+1);render()}
+$('who').onchange=e=>{setActive(e.target.value);render();toast('Logging as '+S.active)};
+function addMember(){const n=$('newM').value.trim();if(n&&!S.members.includes(n)){S.members.push(n);setActive(n);$('newM').value='';save({cfg:1})}}
+function removeMember(n){if(S.members.length<2)return;S.members=S.members.filter(m=>m!==n);if(S.active===n)setActive(S.members[0]);save({cfg:1})}
+function openTargets(){$('tN').value=S.targets.need;$('tW').value=S.targets.want;$('tS').value=S.targets.save;$('tgtD').showModal()}
+function saveTargets(){const n=+$('tN').value||0,w=+$('tW').value||0,s=+$('tS').value||0;
+  if(n+w+s!==100){$('tSum').textContent='Total is '+(n+w+s)+'%. Please make it add up to 100.';$('tSum').style.color='var(--red)';return}
+  $('tSum').style.color='';S.targets={need:n,want:w,save:s};save({cfg:1});$('tgtD').close()}
+
+function fillCats(){const k=kind==='expense'?$('fBucket').value:kind;$('cats').innerHTML=CATS[k].map(c=>`<option value="${esc(c)}">`).join('')}
+function setKind(k){kind=k;document.querySelectorAll('#kindSeg button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));$('bucketBox').classList.toggle('hide',k!=='expense');fillCats()}
+function resetForm(){editId=null;$('f').reset();$('fDate').value=today();setKind('expense');$('formTitle').textContent='Add entry';$('saveBtn').textContent='Save entry';$('cancelEdit').classList.add('hide')}
+function preset(k,b,c){resetForm();setKind(k);if(b)$('fBucket').value=b;fillCats();$('fCat').value=c;$('fAmt').focus()}
+function submitForm(e){e.preventDefault();
+  const amount=parseFloat($('fAmt').value),cat=$('fCat').value.trim();if(!cat||!(amount>0))return;
+  const o={date:$('fDate').value||today(),kind,bucket:kind==='expense'?$('fBucket').value:'',cat,title:$('fTitle').value.trim(),amount};
+  let tid=editId;
+  if(editId){const t=S.tx.find(x=>x.id===editId);Object.assign(t,o);toast('Entry updated')}
+  else{tid='t'+Date.now()+Math.random().toString(36).slice(2,5);S.tx.unshift({id:tid,member:S.active,...o});toast('Saved '+rs(amount)+' · '+cat)}
+  $('month').value=o.date.slice(0,7);resetForm();save({tx:[tid]})}
+function startEdit(id){const t=S.tx.find(x=>x.id===id);if(!t)return;editId=id;setKind(t.kind);
+  if(t.bucket)$('fBucket').value=t.bucket;fillCats();$('fCat').value=t.cat;$('fTitle').value=t.title||'';$('fAmt').value=t.amount;$('fDate').value=t.date;
+  $('formTitle').textContent='Edit entry';$('saveBtn').textContent='Update entry';$('cancelEdit').classList.remove('hide');$('f').scrollIntoView({behavior:'smooth',block:'center'})}
+function del(id){if(!confirm('Delete this entry?'))return;S.tx=S.tx.filter(t=>t.id!==id);if(editId===id)resetForm();save({del:[id]});toast('Entry removed')}
+
+function openDigest(){
+  const d=monthData(),mo=$('month').value,T=S.targets,left=d.inc-d.need-d.want-d.sav;
+  const l=(n,a,p)=>`${n}: *₹${a}* (${d.inc?Math.round(a/d.inc*100):0}% · target ${p}%)`;
+  let s=`🏡 *GharKharch – ${mo} Summary*\n--------------------\n💼 *Income:* ₹${d.inc}\n🛒 ${l('Needs',d.need,T.need)}\n🛍 ${l('Wants',d.want,T.want)}\n🐖 ${l('Savings',d.sav,T.save)}\n--------------------\n💵 *Unallocated:* ₹${left}`;
+  const td=S.tx.filter(t=>t.date===today());
+  if(td.length)s+=`\n\n📅 *Today:*\n`+td.map(t=>`• ${t.cat} – ₹${t.amount}${t.kind==='income'?' (income)':''} (${t.member})`).join('\n');
+  $('digT').textContent=s;$('waLink').href='https://api.whatsapp.com/send?text='+encodeURIComponent(s);$('digD').showModal()}
+function copyDigest(){const t=$('digT').textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied')).catch(()=>toast('Select the text and copy manually'))}
+
+/* ---- Milk & subzi tally ---- */
+let dayKey=null;
+function renderTally(){
+  const mo=$('month').value,[y,m]=mo.split('-').map(Number),n=new Date(y,m,0).getDate(),first=new Date(y,m-1,1).getDay(),days=S.tally[mo]||{};
+  $('rate').value=S.rate;
+  let h=['S','M','T','W','T','F','S'].map(x=>`<div class="m" style="text-align:center">${x}</div>`).join('')+'<div></div>'.repeat(first);
+  let lit=0,sub=0,md=0;
+  for(let i=1;i<=n;i++){const k=pad(i),v=days[k]||{};if(v.m){lit+=v.m;md++}if(v.s)sub+=v.s;
+    h+=`<button onclick="openDay('${k}')" style="padding:4px 0;font-size:12px;${v.m||v.s?'background:var(--soft);':''}">${i}<br>${v.m?'🥛':'·'}${v.s?'🥦':''}</button>`}
+  $('cal').innerHTML=h;
+  $('tallySum').innerHTML=`🥛 ${md} days · ${lit} L = <b>${rs(lit*S.rate)}</b> &nbsp;·&nbsp; 🥦 Subzi cash <b>${rs(sub)}</b>`;
+}
+function openDay(k){const mo=$('month').value,v=(S.tally[mo]||{})[k]||{};dayKey=k;
+  $('dayT').textContent=k+'/'+mo.slice(5)+'/'+mo.slice(0,4);$('dM').value=v.m??1;$('dS').value=v.s||'';$('dayD').showModal()}
+function saveDay(){const mo=$('month').value,m=+$('dM').value||0,s=+$('dS').value||0;
+  S.tally[mo]={...(S.tally[mo]||{})};
+  if(!m&&!s)delete S.tally[mo][dayKey];else S.tally[mo][dayKey]={m,s};
+  $('dayD').close();save({tally:[mo]})}
+function fillMilk(){const mo=$('month').value,[y,m]=mo.split('-').map(Number),n=new Date(y,m,0).getDate(),t=new Date();
+  const lim=(t.getFullYear()===y&&t.getMonth()+1===m)?t.getDate():n;
+  S.tally[mo]={...(S.tally[mo]||{})};
+  for(let i=1;i<=lim;i++){const k=pad(i),v=S.tally[mo][k]||{};if(!v.m)S.tally[mo][k]={m:1,s:v.s||0}}
+  save({tally:[mo]});toast('Milk marked till day '+lim+'. Tap a day to fix missed ones.')}
+function setRate(){S.rate=+$('rate').value||60;save({cfg:1})}
+function tallyToLedger(){
+  const mo=$('month').value,days=S.tally[mo]||{};let lit=0,sub=0;Object.values(days).forEach(v=>{lit+=v.m||0;sub+=v.s||0});
+  const milk=lit*S.rate;if(!milk&&!sub){toast('Nothing in the tally yet');return}
+  if(!confirm('Add Milk '+rs(milk)+' and Subzi '+rs(sub)+' to the ledger as Needs? Do this only once per month.'))return;
+  const[y,m]=mo.split('-').map(Number),t=new Date(),dt=(t.getFullYear()===y&&t.getMonth()+1===m)?today():mo+'-'+pad(new Date(y,m,0).getDate());
+  const ids=[];
+  [[milk,'Milk','Milk tally '+lit+' L'],[sub,'Groceries','Subzi cash tally']].forEach(([a,c,ti])=>{if(a>0){const id='t'+Date.now()+Math.random().toString(36).slice(2,5);ids.push(id);S.tx.unshift({id,member:S.active,date:dt,kind:'expense',bucket:'need',cat:c,title:ti,amount:a})}});
+  save({tx:ids});toast('Added to ledger')}
+
+/* ---- Voice to form ---- */
+const W={ek:1,do:2,teen:3,char:4,chaar:4,paanch:5,panch:5,chhe:6,che:6,saat:7,aath:8,nau:9,das:10,bees:20,tees:30,chalis:40,pachas:50,dhai:2.5,dedh:1.5};
+function wordsToNum(tk){let total=0,cur=0,f=false;for(const w of tk){if(W[w]!==undefined){cur+=W[w];f=true}else if(w==='sau'||w==='so'){cur=(cur||1)*100;f=true}else if(w==='hazaar'||w==='hazar'||w==='thousand'){total+=(cur||1)*1000;cur=0;f=true}}return f?total+cur:null}
+const ALIAS={sabzi:'Groceries',subzi:'Groceries',kirana:'Groceries',grocery:'Groceries',groceries:'Groceries',doodh:'Milk',milk:'Milk',bijli:'Electricity',electricity:'Electricity',petrol:'Fuel / Transport',fuel:'Fuel / Transport',dawai:'Medical',medicine:'Medical',salary:'Salary',tankhwah:'Salary',sip:'SIP',fd:'FD / RD',chit:'Chit fund',gold:'Gold',school:'School fees',fees:'School fees',rent:'Rent / EMI',emi:'Rent / EMI',movie:'Movies',movies:'Movies',shopping:'Shopping',shagun:'Gifts / Shagun',gift:'Gifts / Shagun'};
+function parseVoice(text){
+  const low=text.toLowerCase(),dm=low.match(/\d+(\.\d+)?/);
+  const amount=dm?parseFloat(dm[0]):wordsToNum(low.split(/\s+/));
+  let cat=null;
+  for(const k in ALIAS)if(new RegExp('\\b'+k+'\\b').test(low)){cat=ALIAS[k];break}
+  if(!cat)for(const g of Object.values(CATS)){const c=g.find(x=>low.includes(x.toLowerCase()));if(c){cat=c;break}}
+  let k='expense',b='need';
+  if(/\b(salary|income|kamai|tankhwah|received|mila)\b/.test(low))k='income';
+  else if(/\b(saving|savings|bachat|sip|fd|rd|chit|gold|invest)\b/.test(low))k='saving';
+  else if(/\b(eating out|restaurant|shopping|movie|movies|travel|gift|shagun|subscription|party)\b/.test(low))b='want';
+  if(!cat){cat=low.replace(/\d+(\.\d+)?/g,' ').replace(new RegExp('\\b('+Object.keys(W).join('|')+'|sau|so|hazaar|hazar|thousand|rupees?|rupaye|rs|for|to|of|ka|ki|ke|expense|income|saving)\\b','g'),' ').replace(/\s+/g,' ').trim()||'Other';cat=cat.charAt(0).toUpperCase()+cat.slice(1)}
+  resetForm();setKind(k);if(k==='expense')$('fBucket').value=b;fillCats();$('fCat').value=cat;
+  if(amount){$('fAmt').value=amount;toast('Heard ₹'+amount+' · '+cat+'. Check and tap Save.')}else{toast('Heard “'+text+'”. Please add the amount.');$('fAmt').focus()}
+}
+let rec=null,listening=false;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function toggleVoice(){
+  if(!SR){toast('Voice is not supported in this browser. Try Chrome.');return}
+  if(listening){rec.stop();return}
+  rec=new SR();rec.lang='en-IN';rec.interimResults=false;
+  rec.onstart=()=>{listening=true;$('micBtn').textContent='⏹ Listening…'};
+  rec.onend=()=>{listening=false;$('micBtn').textContent='🎤 Speak'};
+  rec.onerror=()=>toast('Voice error. Please try again.');
+  rec.onresult=ev=>parseVoice(ev.results[0][0].transcript);
+  try{rec.start()}catch(e){}
+}
+
+/* ---- Backup / restore ---- */
+async function exportData(){
+  const json=JSON.stringify({app:'gharkharch',v:3,at:new Date().toISOString(),members:S.members,targets:S.targets,rate:S.rate,tx:S.tx,tally:S.tally},null,1);
+  try{const dl=window.claude&&claude.use?await claude.use('downloads'):null;
+    if(dl){await dl.save({filename:'gharkharch-backup-'+today()+'.json',data:json});toast('Backup ready');return}}catch(e){if(e&&e.code==='cancelled')return}
+  $('bkTxt').value=json;toast('Copy this text and keep it safe, for example on WhatsApp to yourself.')
+}
+function fileImport(inp){const f=inp.files[0];if(f)f.text().then(importData).catch(()=>toast('Could not read that file'))}
+function importData(txt){
+  let o;try{o=JSON.parse(txt)}catch(e){toast('That is not a valid backup');return}
+  if(!o||o.app!=='gharkharch'||!Array.isArray(o.tx)){toast('Not a GharKharch backup');return}
+  const ids=[];
+  o.tx.forEach(r=>{if(!r||!/^[\w.-]{1,100}$/.test(String(r.id))||!(+r.amount>0)||!/^\d{4}-\d{2}-\d{2}$/.test(String(r.date))||!['expense','income','saving'].includes(r.kind))return;
+    const t={id:String(r.id),date:r.date,member:String(r.member||S.active),kind:r.kind,bucket:r.kind==='expense'&&r.bucket==='want'?'want':r.kind==='expense'?'need':'',cat:String(r.cat||'Other'),title:String(r.title||''),amount:+r.amount};
+    const i=S.tx.findIndex(x=>x.id===t.id);if(i>=0)S.tx[i]=t;else S.tx.push(t);ids.push(t.id)});
+  (o.members||[]).forEach(m=>{m=String(m);if(!S.members.includes(m))S.members.push(m)});
+  if(o.targets&&+o.targets.need+ +o.targets.want+ +o.targets.save===100)S.targets={need:+o.targets.need,want:+o.targets.want,save:+o.targets.save};
+  if(+o.rate>0)S.rate=+o.rate;
+  const mos=[];for(const mo in(o.tally||{})){if(!/^\d{4}-\d{2}$/.test(mo))continue;S.tally[mo]={...(S.tally[mo]||{}),...o.tally[mo]};mos.push(mo)}
+  save({tx:ids,cfg:1,tally:mos});$('bkD').close();toast('Imported '+ids.length+' entries')
+}
+
+$('fDate').value=today();fillCats();render();setStatus();
+(async()=>{
+  const c=window.claude;let db=null,user=null;
+  try{if(c&&c.use){db=await c.use('db');user=await c.use('user')}}catch(e){}
+  if(!db)return;
+  DB=db;
+  try{if(user&&(await user.can('data.write'))===false)readOnly=true}catch(e){}
+  const D=seed();S.members=D.members;S.targets=D.targets;S.tx=[];S.tally={};S.rate=60;
+  let a=null;try{a=localStorage.getItem('gk_active')}catch(e){}
+  S.active=a||S.members[0];setStatus();
+  if(readOnly){banner('👀 View-only access. Ask the owner to invite you as an editor so you can add entries.');$('saveBtn').disabled=true}
+  DB.collection('tally').onSnapshot(sn=>{const t={};sn.docs.forEach(d=>{t[d.id]={...(d.data().days||{})}});S.tally=t;render()},()=>{});
+  DB.collection('entries').onSnapshot(sn=>{S.tx=sn.docs.map(d=>({...d.data()}));render()},()=>toast('Sync stopped. Please reload the page.'));
+  DB.doc('config/budget').onSnapshot(sn=>{const d=sn.exists?sn.data():null;
+    if(d){S.members=[...(d.members||S.members)];S.targets={...(d.targets||S.targets)};S.rate=d.rate||S.rate}render()},()=>{});
+})();
+</script>
+</body>
+</html>
